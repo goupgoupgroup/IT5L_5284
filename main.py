@@ -95,7 +95,7 @@ class Supre:
         ttk.Label(self.login_frame, text='Username:').grid(row=0, column=0, sticky='e')
         ttk.Entry(self.login_frame, textvariable= self.entry_user).grid(row=0, column=1, padx=20, ipady=7, ipadx=50, sticky='w')
         ttk.Label(self.login_frame, text='Password:').grid(row=1, column=0, sticky='ne')
-        ttk.Entry(self.login_frame, textvariable= self.entry_pass).grid(row=1, column=1, padx=20, ipady=7, ipadx=50, sticky='nw')
+        ttk.Entry(self.login_frame, textvariable= self.entry_pass, show='*').grid(row=1, column=1, padx=20, ipady=7, ipadx=50, sticky='nw')
         self.log_btn = ttk.Button(self.login_frame, text='Login', command=partial(self.login, self.login_window, self.role, self.entry_user, self.entry_pass))
         self.log_btn.grid(row=2, column=0, columnspan=2, sticky='n')
 
@@ -328,6 +328,7 @@ class Supre:
 
         self.cart_table.grid(row=2, rowspan=2, column=2, padx=20, pady=20, sticky='nsew')
     
+    #Show All Products
     def all(self):
         for product in self.table.get_children():
             self.table.delete(product)
@@ -353,24 +354,36 @@ class Supre:
     #Add Products to Cart
     __total = float(0)
     __quantity = int(0)
+    __product_id_list = []
     def add_cart(self, id):
         db.cursor.execute(f"SELECT * FROM products WHERE id = {id.get()}")
         self.product_table = db.cursor.fetchall()
         
         for product in self.product_table:
-            self.cart_table.insert(parent = '', index='end', values=list(product))
-            self.__total += float(product[3])
-            self.__quantity += int(1)
-
+            if product[2] == 0:
+                tkinter.messagebox.showerror(title='Out of Stock', message=f'Product with ID No.{product[0]} has {product[2]} stocks.')
+            else:
+                self.cart_table.insert(parent = '', index='end', values=list(product))
+                self.__total += float(product[3])
+                self.__quantity += int(1)
+                self.__product_id_list.append(product[0])
+    
     #Clear Products in Cart
     def clear_cart(self):
         for product in self.table.get_children():
             self.cart_table.delete(product)
+
         self.__total = float(0)
         self.__quantity = int(0)
-
+        self.__product_id_list = []
+    
+    #Confirm Purchase from Cart
     def purchase(self):
+        for product in self.__product_id_list:
+            db.purchase(product)
+
         tkinter.messagebox.showinfo(title='Purchased Product', message=f'Successfully purchased {self.__quantity} items. Total Payment: ${self.__total:.2f}')
+        
         self.__total = float(0)
         self.__quantity = int(0)
 

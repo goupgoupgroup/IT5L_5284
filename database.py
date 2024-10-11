@@ -3,7 +3,8 @@ import mysql.connector
 
 #Create Database Class
 class Database:
-    
+
+
     #Create 'Database' Class constructor with arguments for accessing 'supre_db' Database
     def __init__(self, host, user, password, database):
          
@@ -34,7 +35,15 @@ class Database:
         self.sql = f"UPDATE products SET name = '{name}', stocks = '{stocks}', price = '{price}' WHERE id = {id}"
         self.cursor.execute(self.sql)
         self.db.commit()
-
+    
+    def purchase(self, id):
+        self.cursor.execute(f"SELECT * FROM products WHERE id = {id}")
+        self.stock = self.cursor.fetchall()
+            
+        for stock in self.stock:
+            self.sql = f"UPDATE products SET stocks = '{int(stock[2])-1}' WHERE id = {id}"
+            self.cursor.execute(self.sql)
+            self.db.commit()
 
     #Delete Product Data from 'products' Table
     def remove_product(self, id):
